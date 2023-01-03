@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.mis.mapper.QnaMapper">
+
+	<insert id="create">
+		INSERT INTO TBL_QNA (QNA_NO, QNA_TITLE, QNA_CONTENTS, REGDATE, USER_NO)
+		VALUES (SEQ_QNA.NEXTVAL, #{qnaTitle}, #{qnaContents}, SYSDATE, #{userNo})
+	</insert>
+
+	<select id="read" resultType="com.mis.domain.QnAVO">
+		SELECT Q.QNA_NO, Q.QNA_TITLE, Q.QNA_CONTENTS, 
+       		   Q.REGDATE, Q.HITS, Q.USER_NO, U.UNAME AS USER_NAME 
+        FROM TBL_QNA Q, TBL_USER U
+        WHERE Q.USER_NO = U.USID AND Q.QNA_NO =  #{qnaNo}
+	</select>
+	
+	<update id="update">
+		UPDATE TBL_QNA SET  QNA_TITLE = #{qnaTitle}, 
+						    QNA_CONTENTS = #{qnaContents}
+		WHERE QNA_NO = #{qnaNo}
+	</update>
+	
+	<update id="updateHits">
+		UPDATE TBL_QNA SET HITS = HITS + 1
+		WHERE QNA_NO = #{qnaNo}
+	</update>
+	
+	<delete id="delete">
+		DELETE FROM TBL_QNA WHERE QNA_NO = #{qnaNo} 
+	</delete>
+
+		<sql id="search">
+		<if test="searchType != null">
+			<if test="searchType == 't'.toString()">
+				AND QNA_TITLE LIKE '%' || #{keyword} || '%'
+			</if>
+			<if test="searchType == 'c'.toString()">
+				AND QNA_CONTENTS LIKE '%' || #{keyword} || '%'
+			</if>
+			<if test="searchType == 'n'.toString()">
+				AND USER_NAME LIKE '%' || #{keyword} || '%'
+			</if>			
+			<if test="searchType == 'nn'.toString()">
+				AND (QNA_TITLE LIKE '%' || #{keyword} || '%' )
+				OR
+				(QNA_CONTENTS LIKE '%' || #{keyword} || '%' )
+				OR
+				(USER_NAME LIKE '%' || #{keyword} || '%' )
+			</if>
+		</if>
+	</sql>
+	
+	<select id="listSearchCriteria" resultType="com.mis.domain.QnAVO">
+ 	<![CDATA[
+		SELECT * FROM (
+    		SELECT ROWNUM RNUM, QNA_NO, QNA_TITLE, QNA_CONTENTS, REGDATE, HITS, USER_NO, USER_NAME
+    		FROM (SELECT Q.QNA_NO, Q.QNA_TITLE, Q.QNA_CONTENTS, 
+       		             Q.REGDATE, Q.HITS, Q.USER_NO, U.UNAME AS USER_NAME 
+                  FROM TBL_QNA Q, TBL_USER U  WHERE Q.USER_NO = U.USID 
+   		 
+	 ]]>
+		<include refid="search"></include>
+		
+ 	<![CDATA[   		
+		ORDER BY QNA_NO DESC)) WHERE (RNUM >= #{pageStart} AND RNUM <= #{pageEnd})
+		ORDER BY  QNA_NO DESC, REGDATE DESC
+ 	 ]]>
+	</select>
+
+
+	<select id="listSearchCountCriteria" resultType="int">
+ 	<![CDATA[
+		SELECT COUNT(*) FROM TBL_QNA
+   		WHERE QNA_NO > 0 
+	 ]]>
+		<include refid="search"></include>
+	</select>
+
+</mapper>

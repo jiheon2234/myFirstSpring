@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.mis.mapper.ReplyMapper">
+
+	<insert id="create">
+		INSERT INTO TBL_REPLY (REPLY_NO, REPLY_TEXT, REG_DATE, QNA_NO, USER_NO)
+		VALUES (SEQ_REPLY.NEXTVAL, #{replyText}, SYSDATE, #{qnaNo}, #{userNo})
+	</insert>
+
+	<select id="list" resultType="com.mis.domain.ReplyVO">
+		SELECT R.REPLY_NO, R.REPLY_TEXT, R.REG_DATE, R.QNA_NO, R.USER_NO, U.UNAME AS USER_NAME 
+        FROM TBL_REPLY R, TBL_USER U, TBL_QNA Q
+        WHERE R.USER_NO = U.USID AND R.QNA_NO = Q.QNA_NO AND R.QNA_NO =  #{qnaNo}
+	</select>
+	
+	<delete id="delete">
+		DELETE FROM TBL_REPLY WHERE REPLY_NO = #{replyNo} 
+	</delete>
+	
+	<delete id="deleteAll">
+		DELETE FROM TBL_REPLY WHERE QNA_NO = #{qnaNo} 
+	</delete>
+	
+</mapper>
